@@ -13,31 +13,29 @@ The team would like:
 ```
 name: Node CI
 
-on: [push]
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
-      - uses: actions/upload-artifact@master
-    needs: build
-          name: webpack artifacts
-          path: public/
-
+  build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
       - name: npm install and build webpack
         run: |
           npm install
           npm run build
+      - uses: actions/upload-artifact@master
+        with:
+          name: webpack artifacts
+          path: public/
 
   test:
-    - uses: actions/download-artifact@master
-      with:
-        name: webpack artifacts
-        path: public
-    - name: npm install, and test
+    needs: build
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         os: [ubuntu-latest, windows-2016]
@@ -45,6 +43,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - uses: actions/download-artifact@master
+      with: 
+        name: webpack artifacts
+        path: public
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
